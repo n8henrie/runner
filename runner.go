@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 )
 
 type scriptResult struct {
@@ -18,10 +20,6 @@ type scriptResult struct {
 var url string
 
 func main() {
-	var (
-		exitCode int
-		message  string
-	)
 	var cmd exec.Cmd
 
 	switch len(os.Args) {
@@ -33,12 +31,18 @@ func main() {
 		cmd = *exec.Command(os.Args[2], os.Args[3:]...)
 	}
 	name := os.Args[1]
+
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
+
 	err := cmd.Run()
 
+	var (
+		exitCode int
+		message  string
+	)
 	if err != nil {
 		if e, ok := err.(*exec.ExitError); ok {
 			exitCode = e.ExitCode()
@@ -56,11 +60,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	resp, err := http.Post(url, "application/json", bytes.NewReader(b))
+
+	ctx, cncl := context.WithTimeout(context.Background(), time.Second*10)
+	defer cncl()
+
+	resp, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(b))
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
+
 	if message != "" {
 		fmt.Fprintln(os.Stderr, message)
 	}
