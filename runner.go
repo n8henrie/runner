@@ -40,15 +40,18 @@ func main() {
 	cmd.Stderr = &errbuf
 
 	err := cmd.Run()
-
 	var (
-		exitCode int
-		message  string
+		stdout, stderr string
 	)
+	stdout = outbuf.String()
+	stderr = errbuf.String()
+
+	fmt.Fprint(os.Stdout, stdout)
+	fmt.Fprint(os.Stderr, stderr)
+
 	if err != nil {
 		if e, ok := err.(*exec.ExitError); ok {
 			exitCode = e.ExitCode()
-			message = errbuf.String()
 		} else {
 			panic(err)
 		}
@@ -56,7 +59,7 @@ func main() {
 
 	b, err := json.Marshal(scriptResult{
 		Name:     name,
-		Message:  message,
+		Message:  stderr,
 		ExitCode: exitCode,
 	})
 	if err != nil {
@@ -71,8 +74,4 @@ func main() {
 		panic(err)
 	}
 	defer resp.Body.Close()
-
-	if message != "" {
-		fmt.Fprintln(os.Stderr, message)
-	}
 }
