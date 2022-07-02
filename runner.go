@@ -20,6 +20,9 @@ type scriptResult struct {
 var url string
 
 func main() {
+	exitCode := 0
+	defer os.Exit(exitCode)
+
 	var cmd exec.Cmd
 
 	switch len(os.Args) {
@@ -73,5 +76,4 @@ func main() {
 	if message != "" {
 		fmt.Fprintln(os.Stderr, message)
 	}
-	os.Exit(exitCode)
 }
