@@ -28,11 +28,10 @@ func main() {
 	switch len(os.Args) {
 	case 1, 2:
 		panic("USAGE: ./runner name executable [args]")
-	case 3:
-		cmd = *exec.Command(os.Args[2])
 	default:
-		cmd = *exec.Command(os.Args[2], os.Args[3:]...)
+		cmd = *exec.Command("/usr/bin/caffeinate", os.Args[2:]...)
 	}
+
 	name := os.Args[1]
 
 	var outbuf, errbuf bytes.Buffer
